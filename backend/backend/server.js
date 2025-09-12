@@ -1,67 +1,66 @@
 import express from "express";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
-import Chef from "./models.js";
+import connectDB from "./config/db.js";
+import Product from "./models/product.js";
+import userRoutes from "./routes/userRoutes.js";
+import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 dotenv.config();
+connectDB();
 
 const app = express();
 app.use(express.json());
 
-// GET /chefs → return list of chefs
-app.get("/chefs", async (req, res) => {
-  try {
-    const chefs = await Chef.find();
-    res.json(chefs);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /book → pretend to book a chef
-app.post("/book", async (req, res) => {
-  try {
-    const { chefId } = req.body;
-    // for now just mark availability = false
-    const chef = await Chef.findByIdAndUpdate(
-      chefId,
-      { availability: false },
-      { new: true }
-    );
-    res.json({ message: "Chef booked!", chef });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// TEST route
+// ROUTES
 app.get("/", (req, res) => {
-  res.send("API is working 🚀");
+  res.send("API is running...");
 });
 
-const PORT = process.env.PORT || 5000;
+app.use('/api/users', userRoutes);
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(async () => {
-    console.log("✅ MongoDB Connected!");
-    // Seed initial data if collection is empty
-    try {
-      const count = await Chef.countDocuments();
-      if (count === 0) {
-        await Chef.create([
-          { name: "Gordon Ramsay", cuisine: "British", price: 500, rating: 5 },
-          { name: "Sanjeev Kapoor", cuisine: "Indian", price: 300, rating: 4.5 },
-          { name: "Nobu Matsuhisa", cuisine: "Japanese", price: 700, rating: 5 }
-        ]);
-        console.log('Seeded initial chefs.');
-      }
-    } catch (err) {
-      console.error('Error seeding chefs:', err);
-    }
+app.listen(5000, () => {
+  console.log("Server running on port 5000");
+});
 
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-  })
-  .catch((err) => console.error("❌ MongoDB Error:", err));
+// get all products
+app.get("/api/products", async (req, res) => {
+  const products = await Product.find({});
+  res.json(products);
+});
 
-  
+// get single product
+app.get("/api/products/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (product) res.json(product);
+    else res.status(404).json({ message: "Product not found" });
+  } catch {
+    res.status(400).json({ message: "Invalid ID" });
+  }
+});
+
+const PORT = process.env.PORT || 5001;
+
+async function startServer() {
+  try {
+    await connectDB();
+    app.listen(PORT, () => console.log(`🚀 Server started on PORT: ${PORT}`));
+  } catch (err) {
+    console.error("Failed to start server:", err);
+    process.exit(1);
+  }
+}
+
+startServer();
+
+// error middlewares
+app.use(notFound);
+app.use(errorHandler);
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
