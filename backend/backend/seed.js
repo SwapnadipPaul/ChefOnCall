@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import User from "./user.js"; // ensure .js extension and correct relative path
 import Chef from "./models/chef.js";
-import Product from "./models/product.js";
+import Product from "./models/product.js";x``
 
 dotenv.config();
 

@@ -4,7 +4,10 @@ import { User } from "../models/user.js";
 
 // @desc    Register new user
 // @route   POST /api/users/signup
+
+
 const registerUser = asyncHandler(async (req, res) => {
+  console.log(">>> req.body:", req.body);  // 👈 debug line
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {

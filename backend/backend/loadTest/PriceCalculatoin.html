@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Pricing System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8 md:p-12 space-y-8">
+        <header class="text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">Chef Pricing Calculator</h1>
+            <p class="mt-2 text-gray-500">Adjust the values to see the dynamic pricing in action.</p>
+        </header>
+
+        <section class="grid md:grid-cols-2 gap-8">
+            <!-- Input Card for Chef & Order Details -->
+            <div class="bg-gray-50 p-6 rounded-xl shadow-inner space-y-6">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Input Variables</h2>
+                
+                <!-- Market Selection -->
+                <div>
+                    <label for="market" class="block text-sm font-medium text-gray-700">Select Market</label>
+                    <select id="market" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                        <option value="USD">USA ($)</option>
+                        <option value="INR">India (₹)</option>
+                    </select>
+                </div>
+
+                <!-- Base Price -->
+                <div>
+                    <label for="basePrice" class="block text-sm font-medium text-gray-700">Base Price (Fixed Payout) <span id="basePriceSymbol">$</span></label>
+                    <input type="number" id="basePrice" value="50" min="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                </div>
+
+                <!-- Chef Rating -->
+                <div>
+                    <label for="chefRating" class="block text-sm font-medium text-gray-700">Chef Rating (<span id="ratingValue">4.0</span> stars)</label>
+                    <input type="range" id="chefRating" min="1" max="5" value="4" step="0.1" class="mt-1 w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <!-- Orders Fulfilled -->
+                <div>
+                    <label for="ordersFulfilled" class="block text-sm font-medium text-gray-700">Orders Fulfilled (<span id="ordersValue">50</span> orders)</label>
+                    <input type="range" id="ordersFulfilled" min="0" max="200" value="50" step="1" class="mt-1 w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <!-- Distance -->
+                <div>
+                    <label for="distance" class="block text-sm font-medium text-gray-700">Distance (<span id="distanceValue">5</span> km)</label>
+                    <input type="range" id="distance" min="0" max="50" value="5" step="0.1" class="mt-1 w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer">
+                </div>
+                
+                <!-- Negotiation Variable -->
+                <div>
+                    <label for="negotiation" class="block text-sm font-medium text-gray-700">Negotiation Variable</label>
+                    <select id="negotiation" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                        <option value="1.0">No change</option>
+                        <option value="1.1">Small bump (1.1x)</option>
+                        <option value="1.2">Large bump (1.2x)</option>
+                        <option value="0.9">Small decrease (0.9x)</option>
+                    </select>
+                </div>
+
+                <!-- Platform Service Fee -->
+                <div>
+                    <label for="platformFee" class="block text-sm font-medium text-gray-700">Platform Service Fee (Fixed) <span id="platformFeeSymbol">$</span></label>
+                    <input type="number" id="platformFee" value="5" min="0" step="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                </div>
+                
+                <!-- Admin Multiplier -->
+                <div>
+                    <label for="adminMultiplier" class="block text-sm font-medium text-gray-700">Admin Margin Multiplier (<span id="adminValue">1.2</span>x)</label>
+                    <input type="range" id="adminMultiplier" min="1" max="1.5" value="1.2" step="0.05" class="mt-1 w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <!-- Output Card for Pricing Breakdown -->
+            <div class="bg-gray-50 p-6 rounded-xl shadow-inner space-y-6">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Pricing Breakdown</h2>
+                
+                <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <p class="flex justify-between items-center text-gray-600">
+                        <span class="font-semibold">Base Price:</span>
+                        <span id="outputBasePrice">$50.00</span>
+                    </p>
+                    <p class="flex justify-between items-center text-gray-600">
+                        <span class="font-semibold">Rating Multiplier:</span>
+                        <span id="outputRatingMultiplier">1.00</span>
+                    </p>
+                    <p class="flex justify-between items-center text-gray-600">
+                        <span class="font-semibold">Orders Multiplier:</span>
+                        <span id="outputOrdersMultiplier">1.00</span>
+                    </p>
+                    <p class="flex justify-between items-center text-gray-600">
+                        <span class="font-semibold">Distance Fee:</span>
+                        <span id="outputDistanceFee">$0.00</span>
+                    </p>
+                    <p class="flex justify-between items-center text-gray-600">
+                        <span class="font-semibold">Negotiation Multiplier:</span>
+                        <span id="outputNegotiationMultiplier">1.00</span>
+                    </p>
+                    
+                    <hr class="my-4 border-gray-200">
+                    
+                    <p class="flex justify-between items-center text-lg font-bold text-green-600">
+                        <span>Final Chef Payout:</span>
+                        <span id="outputChefPayout">$50.00</span>
+                    </p>
+                    
+                    <hr class="my-4 border-gray-200">
+                    
+                    <p class="flex justify-between items-center text-gray-600">
+                        <span class="font-semibold">Admin Margin:</span>
+                        <span id="outputAdminMargin">$10.00</span>
+                    </p>
+                    <p class="flex justify-between items-center text-gray-600">
+                        <span class="font-semibold">Platform Service Fee:</span>
+                        <span id="outputPlatformFee">$5.00</span>
+                    </p>
+                    <p class="flex justify-between items-center text-2xl font-bold text-indigo-600">
+                        <span>Total User Price:</span>
+                        <span id="outputFinalUserPrice">$60.00</span>
+                    </p>
+                    
+                    <hr class="my-4 border-gray-200">
+
+                    <!-- Custom Payout Breakdown -->
+                    <p class="flex justify-between items-center text-lg text-gray-800 font-bold mt-6">
+                        <span>Our Payout:</span>
+                        <span id="outputOurPayout">$15.00</span>
+                    </p>
+                    <p class="flex justify-between items-center text-lg text-gray-800 font-bold">
+                        <span>Chef's Payout:</span>
+                        <span id="outputChefsPayout">$50.00</span>
+                    </p>
+
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Get all the input elements
+        const marketInput = document.getElementById('market');
+        const basePriceInput = document.getElementById('basePrice');
+        const chefRatingInput = document.getElementById('chefRating');
+        const ordersFulfilledInput = document.getElementById('ordersFulfilled');
+        const distanceInput = document.getElementById('distance');
+        const negotiationInput = document.getElementById('negotiation');
+        const platformFeeInput = document.getElementById('platformFee');
+        const adminMultiplierInput = document.getElementById('adminMultiplier');
+
+        // Get all the output elements
+        const basePriceSymbolSpan = document.getElementById('basePriceSymbol');
+        const platformFeeSymbolSpan = document.getElementById('platformFeeSymbol');
+        const ratingValueSpan = document.getElementById('ratingValue');
+        const ordersValueSpan = document.getElementById('ordersValue');
+        const distanceValueSpan = document.getElementById('distanceValue');
+        const adminValueSpan = document.getElementById('adminValue');
+
+        const outputBasePriceSpan = document.getElementById('outputBasePrice');
+        const outputRatingMultiplierSpan = document.getElementById('outputRatingMultiplier');
+        const outputOrdersMultiplierSpan = document.getElementById('outputOrdersMultiplier');
+        const outputDistanceFeeSpan = document.getElementById('outputDistanceFee');
+        const outputNegotiationMultiplierSpan = document.getElementById('outputNegotiationMultiplier');
+        const outputChefPayoutSpan = document.getElementById('outputChefPayout');
+        const outputAdminMarginSpan = document.getElementById('outputAdminMargin');
+        const outputPlatformFeeSpan = document.getElementById('outputPlatformFee');
+        const outputFinalUserPriceSpan = document.getElementById('outputFinalUserPrice');
+        
+        // New output elements for the custom breakdown
+        const outputOurPayoutSpan = document.getElementById('outputOurPayout');
+        const outputChefsPayoutSpan = document.getElementById('outputChefsPayout');
+
+        // --- Core Pricing Logic and Weights ---
+
+        // Define your point brackets and multipliers
+        const RATING_MULTIPLIERS = {
+            '4.5': 1.25, // 4.5 stars and above get a 25% bonus
+            '4.0': 1.15, // 4.0-4.4 get a 15% bonus
+            '3.0': 1.05, // 3.0-3.9 get a 5% bonus
+            '0.0': 1.00  // Base multiplier for below 3.0
+        };
+        
+        const ORDERS_MULTIPLIERS = {
+            '100': 1.2,  // 100+ orders get a 20% bonus
+            '50': 1.1,   // 50-99 orders get a 10% bonus
+            '0': 1.0    // Base for 0-49 orders
+        };
+        
+        // Define market-specific pricing constants
+        const MARKET_PRICING = {
+            'USD': {
+                currencySymbol: '$',
+                basePrice: 50,
+                distanceCostPerKm: 2.50,
+                platformServiceFee: 5
+            },
+            'INR': {
+                currencySymbol: '₹',
+                basePrice: 1500,
+                distanceCostPerKm: 20,
+                platformServiceFee: 150
+            }
+        };
+
+        function calculatePrice() {
+            // Get current values from the UI
+            const currentMarket = marketInput.value;
+            const marketData = MARKET_PRICING[currentMarket];
+            
+            // Get input values from UI sliders/inputs
+            const basePrice = parseFloat(basePriceInput.value);
+            const chefRating = parseFloat(chefRatingInput.value);
+            const ordersFulfilled = parseInt(ordersFulfilledInput.value, 10);
+            const distance = parseFloat(distanceInput.value);
+            const negotiationMultiplier = parseFloat(negotiationInput.value);
+            const platformFee = parseFloat(platformFeeInput.value);
+            const adminMultiplier = parseFloat(adminMultiplierInput.value);
+
+            // Update UI value displays
+            ratingValueSpan.textContent = chefRating.toFixed(1);
+            ordersValueSpan.textContent = ordersFulfilled;
+            distanceValueSpan.textContent = distance.toFixed(1);
+            adminValueSpan.textContent = adminMultiplier.toFixed(2);
+
+            // 1. Calculate Multipliers based on brackets
+            let ratingMultiplier = 1.0;
+            if (chefRating >= 4.5) {
+                ratingMultiplier = RATING_MULTIPLIERS['4.5'];
+            } else if (chefRating >= 4.0) {
+                ratingMultiplier = RATING_MULTIPLIERS['4.0'];
+            } else if (chefRating >= 3.0) {
+                ratingMultiplier = RATING_MULTIPLIERs['3.0'];
+            } else {
+                ratingMultiplier = RATING_MULTIPLIERS['0.0'];
+            }
+
+            let ordersMultiplier = 1.0;
+            if (ordersFulfilled >= 100) {
+                ordersMultiplier = ORDERS_MULTIPLIERS['100'];
+            } else if (ordersFulfilled >= 50) {
+                ordersMultiplier = ORDERS_MULTIPLIERS['50'];
+            } else {
+                ordersMultiplier = ORDERS_MULTIPLIERS['0'];
+            }
+            
+            // 2. Calculate Distance Fee
+            const distanceFee = distance * marketData.distanceCostPerKm;
+            
+            // 3. Calculate Final Chef Payout
+            const chefPayout = ((basePrice * ratingMultiplier * ordersMultiplier) + distanceFee) * negotiationMultiplier;
+            
+            // 4. Calculate Final User Price
+            const adminMargin = chefPayout * (adminMultiplier - 1);
+            const ourPayout = platformFee + adminMargin;
+            const finalUserPrice = chefPayout + ourPayout;
+            
+            // Update the output UI with formatted values
+            const currency = marketData.currencySymbol;
+            outputBasePriceSpan.textContent = `${currency}${basePrice.toFixed(2)}`;
+            outputRatingMultiplierSpan.textContent = ratingMultiplier.toFixed(2);
+            outputOrdersMultiplierSpan.textContent = ordersMultiplier.toFixed(2);
+            outputDistanceFeeSpan.textContent = `${currency}${distanceFee.toFixed(2)}`;
+            outputNegotiationMultiplierSpan.textContent = negotiationMultiplier.toFixed(2);
+            outputChefPayoutSpan.textContent = `${currency}${chefPayout.toFixed(2)}`;
+            outputAdminMarginSpan.textContent = `${currency}${adminMargin.toFixed(2)}`;
+            outputPlatformFeeSpan.textContent = `${currency}${platformFee.toFixed(2)}`;
+            outputFinalUserPriceSpan.textContent = `${currency}${finalUserPrice.toFixed(2)}`;
+            
+            // Update the new custom payout breakdown
+            outputOurPayoutSpan.textContent = `${currency}${ourPayout.toFixed(2)}`;
+            outputChefsPayoutSpan.textContent = `${currency}${chefPayout.toFixed(2)}`;
+        }
+
+        // Function to update input values and currency symbol based on market selection
+        function updateMarketValues() {
+            const currentMarket = marketInput.value;
+            const marketData = MARKET_PRICING[currentMarket];
+            basePriceInput.value = marketData.basePrice;
+            basePriceSymbolSpan.textContent = marketData.currencySymbol;
+            platformFeeInput.value = marketData.platformServiceFee;
+            platformFeeSymbolSpan.textContent = marketData.currencySymbol;
+            calculatePrice();
+        }
+
+        // Add event listeners to all inputs to trigger the calculation on change
+        const allInputs = [marketInput, basePriceInput, chefRatingInput, ordersFulfilledInput, distanceInput, negotiationInput, platformFeeInput, adminMultiplierInput];
+        allInputs.forEach(input => {
+            input.addEventListener('input', calculatePrice);
+        });
+
+        // Add specific event listener for the market dropdown to update base values
+        marketInput.addEventListener('change', updateMarketValues);
+
+        // Initial calculation and market value update on page load
+        updateMarketValues();
+    </script>
+</body>
+</html>

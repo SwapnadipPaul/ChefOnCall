@@ -1,0 +1,24 @@
+[
+  {
+    "name": "John David",
+    "email": "johnDavid293@gmail.com",
+    "password": "johndavidisgreat",
+    "rating": 8,
+    "orderCount": 24,
+    "location": "Bengaluru",
+    "phone": "9876543210",
+    "isVerified": true,
+    "role": "user"
+  },
+  {
+    "name": "AdminB1",
+    "email": "admin@admin.admin.com",
+    "password": "admin@chefoncall123",
+    "rating": 10,
+    "orderCount": 100,
+    "location": "Bengaluru",
+    "phone": "9108606005",
+    "isVerified": true,
+    "role": "admin"
+  }
+]
